@@ -1,221 +1,223 @@
 # lesstokens_for_vscode
-基于caveman。针对vscode配置了全局提示词文件
+Based on caveman. Global prompt files configured for VS Code.
+
+> English translation of [birght/lesstokens_for_vscode](https://github.com/birght/lesstokens_for_vscode).
 
 
 
-# Copilot Chat 省 Token 提示词方案
+# Token-Saving Prompts for Copilot Chat
 
-> 基于 [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) 项目理念，适配 VS Code GitHub Copilot Chat 的中文版实现。  
-> 核心原理：通过系统级提示词约束 LLM 输出风格，去掉废话和冗余表达，保留全部技术实质，节省 ~65% 输出 token。
+> Based on the ideas of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman), adapted for VS Code GitHub Copilot Chat.  
+> Core idea: use system-level prompts to constrain the LLM's output style, removing filler and redundant phrasing while keeping all technical substance, saving ~65% of output tokens.
 
 ---
 
-## 一、文件清单
+## 1. File List
 
-所有文件位于 **VS Code 用户级目录**，跨项目通用，不污染任何仓库。
+All files live in the **VS Code user-level directory**. They work across projects and do not pollute any repository.
 
 ```
 %APPDATA%\Code\User\prompts\
-├── caveman-lite.instructions.md   ← 🔄 自动注入（每次对话生效）
-├── caveman-lite.prompt.md         ← 📋 按需选择：🪶 Lite
-├── caveman-full.prompt.md         ← 📋 按需选择：🪨 Full
-├── caveman-ultra.prompt.md        ← 📋 按需选择：🔥 Ultra
-└── caveman-wenyan.prompt.md       ← 📋 按需选择：📜 文言文
+├── caveman-lite.instructions.md   ← 🔄 Auto-injected (applies to every chat)
+├── caveman-lite.prompt.md         ← 📋 On demand: 🪶 Lite
+├── caveman-full.prompt.md         ← 📋 On demand: 🪨 Full
+├── caveman-ultra.prompt.md        ← 📋 On demand: 🔥 Ultra
+└── caveman-wenyan.prompt.md       ← 📋 On demand: 📜 Wenyan (Classical Chinese)
 ```
 
-> Windows 路径：`C:\Users\{用户名}\AppData\Roaming\Code\User\prompts\`
+> Windows path: `C:\Users\{username}\AppData\Roaming\Code\User\prompts\`
 
-| 文件 | 类型 | 作用 |
-|------|------|------|
-| `caveman-lite.instructions.md` | 自动注入 | `applyTo: "**"` 匹配所有文件，**每次 Copilot 对话自动生效** |
-| `caveman-lite.prompt.md` | 按需 | 🪶 去废话保语法，专业简练 |
-| `caveman-full.prompt.md` | 按需 | 🪨 去冠词、片段式表达，经典穴居人风格 |
-| `caveman-ultra.prompt.md` | 按需 | 🔥 电报式极限压缩，缩写+箭头因果链 |
-| `caveman-wenyan.prompt.md` | 按需 | 📜 古典中文压缩，80-90% 字符缩减 |
+| File | Type | Purpose |
+|------|------|---------|
+| `caveman-lite.instructions.md` | Auto-injected | `applyTo: "**"` matches all files, so it **takes effect in every Copilot chat automatically** |
+| `caveman-lite.prompt.md` | On demand | 🪶 Cut fluff, keep grammar, professional and tight |
+| `caveman-full.prompt.md` | On demand | 🪨 No articles, fragment-style phrasing, classic caveman style |
+| `caveman-ultra.prompt.md` | On demand | 🔥 Telegraphic maximum compression, abbreviations + arrow causality chains |
+| `caveman-wenyan.prompt.md` | On demand | 📜 Classical Chinese compression, 80-90% character reduction |
 
-**两种文件的区别**：
-- `.instructions.md`：自动注入，通过 `applyTo` 匹配文件类型，无需手动触发
-- `.prompt.md`：按需选择，在 Chat 输入框中主动引用才生效
+**Difference between the two file types**:
+- `.instructions.md`: injected automatically; `applyTo` matches file types, no manual trigger needed
+- `.prompt.md`: chosen on demand; only takes effect when you explicitly reference it in the Chat input
 
 ---
 
-## 二、配置步骤
+## 2. Setup
 
-### 步骤 1：创建目录
+### Step 1: Create the directory
 
 ```powershell
 mkdir "$env:APPDATA\Code\User\prompts"
 ```
 
-### 步骤 2：创建自动注入文件（核心，做完即生效）
+### Step 2: Create the auto-injected file (the core; effective as soon as it exists)
 
-创建 `caveman-lite.instructions.md`：
+Create `caveman-lite.instructions.md`:
 
 ```markdown
 ---
 applyTo: "**"
 ---
 
-回复精简高效。删除填充词（就是/其实/基本上/简单来说）、客套话（当然可以/很高兴帮你）、模棱两可措辞。句子简短有力，用短同义词。技术术语精确不变，代码块原样。模式：[事物] [动作] [原因]。[下一步]。安全警告和不可逆操作时恢复正常表达。
+Reply concisely and efficiently. Drop filler words (just/really/basically/simply put), pleasantries (sure thing/happy to help), and hedging. Keep sentences short and punchy; prefer short synonyms. Keep technical terms exact and code blocks unchanged. Pattern: [thing] [action] [reason]. [next step]. Return to normal wording for security warnings and irreversible operations.
 ```
 
-### 步骤 3（可选）：创建按需级别文件
+### Step 3 (optional): Create the on-demand level files
 
-将 4 个 `.prompt.md` 文件放入同一目录。文件内容见本文档附录。
+Put the 4 `.prompt.md` files in the same directory. Their contents are in the appendix of this document.
 
-### 步骤 4：工作区 settings.json 配置
+### Step 4: Workspace settings.json
 
-在项目 `.vscode/settings.json` 中添加：
+Add the following to the project's `.vscode/settings.json`:
 
 ```jsonc
 {
-  // 启用用户级 prompts 目录中的 .instructions.md / .prompt.md
+  // Enable .instructions.md / .prompt.md from the user-level prompts directory
   "chat.promptFiles": true,
-  // 启用 Agent Skills（支持 .prompt.md 按需选择）
+  // Enable Agent Skills (allows picking .prompt.md files on demand)
   "chat.useAgentSkills": true,
-  // Agent 模式单次会话最大请求数
+  // Max requests per session in Agent mode
   "chat.agent.maxRequests": 50
 }
 ```
 
-> `chat.promptFiles` 和 `chat.useAgentSkills` 也可以在用户级 settings.json 中配置，效果一致。
+> `chat.promptFiles` and `chat.useAgentSkills` can also be set in the user-level settings.json with the same effect.
 
 ---
 
-## 三、使用方式
+## 3. Usage
 
-### 默认行为（自动）
+### Default behavior (automatic)
 
-`caveman-lite.instructions.md` 已通过 `applyTo: "**"` 全局注入，**打开任何 Copilot Chat 对话即自动生效**，无需操作。
+`caveman-lite.instructions.md` is injected globally via `applyTo: "**"`, so it **takes effect as soon as you open any Copilot Chat conversation**. No action needed.
 
-### `#` 命令引用提示词文件（按需升级）
+### Referencing prompt files with `#` (upgrade on demand)
 
-在 Copilot Chat 输入框中，通过 `#` 命令可以引用 `.prompt.md` 文件：
-
-```
-# 操作步骤：
-1. 在 Chat 输入框输入 #
-2. 在弹出的列表中选择 "Prompt..."（或直接输入文件名模糊匹配）
-3. 选择目标级别的 .prompt.md 文件
-4. 输入你的问题，发送即可
-```
-
-**实际输入示例**：
+In the Copilot Chat input, the `#` command lets you reference `.prompt.md` files:
 
 ```
-#caveman-full 解释下 Vue 的 nextTick 原理
+# Steps:
+1. Type # in the Chat input
+2. Choose "Prompt..." from the popup list (or type the file name to fuzzy-match)
+3. Pick the .prompt.md file for the level you want
+4. Type your question and send
 ```
 
+**Example inputs**:
+
 ```
-#caveman-ultra 这段代码有什么性能问题？
+#caveman-full Explain how Vue's nextTick works
 ```
 
 ```
-#caveman-wenyan pinia 和 vuex 区别
+#caveman-ultra What performance problems does this code have?
 ```
 
-> `#` 引用的 `.prompt.md` 仅对**当次对话**生效，不影响其他对话。关闭对话后自动恢复默认 lite 级别。
+```
+#caveman-wenyan pinia vs vuex
+```
 
-### 操作速查表
+> A `.prompt.md` referenced via `#` only applies to the **current conversation** and does not affect others. After you close the conversation, the default lite level is back in effect.
 
-| 场景 | 操作 | 效果 |
-|------|------|------|
-| **日常（默认）** | 无需操作 | `.instructions.md` 自动注入 lite 级别 |
-| **升级到 Full** | 输入 `#` → 选 `caveman-full` | 当次对话切换到穴居人模式 |
-| **升级到 Ultra** | 输入 `#` → 选 `caveman-ultra` | 电报式极限压缩 |
-| **切换文言文** | 输入 `#` → 选 `caveman-wenyan` | 古典中文输出 |
-| **停止** | 对话中说"正常模式"或"停止精简" | 恢复标准回复 |
+### Quick reference
+
+| Scenario | Action | Effect |
+|----------|--------|--------|
+| **Everyday (default)** | Nothing to do | `.instructions.md` auto-injects the lite level |
+| **Upgrade to Full** | Type `#` → pick `caveman-full` | Current conversation switches to caveman mode |
+| **Upgrade to Ultra** | Type `#` → pick `caveman-ultra` | Telegraphic maximum compression |
+| **Switch to Wenyan** | Type `#` → pick `caveman-wenyan` | Classical Chinese output |
+| **Stop** | Say "normal mode" or "stop concise" in the chat | Back to standard replies |
 
 ---
 
-## 四、效果对比
+## 4. Comparison
 
-同一问题："Vue ref 和 reactive 区别"
+Same question: "Difference between Vue ref and reactive"
 
-| 级别 | 回复示例 |
-|------|----------|
-| **无 caveman** | "当然可以！`ref` 和 `reactive` 都是 Vue 3 组合式 API 中的响应式工具。简单来说，`ref` 主要用于基本类型的值，它会将值包装在一个带有 `.value` 属性的对象中……" |
-| **🪶 Lite** | "`ref` 包装基本类型，访问用 `.value`。`reactive` 用于对象，直接访问属性。选择：基本类型用 ref，对象用 reactive。" |
-| **🪨 Full** | "`ref`包基本类型，要`.value`。`reactive`用于对象，直接访问。基本类型→ref，对象→reactive。" |
-| **🔥 Ultra** | "`ref`→基本类型+`.value`。`reactive`→obj直接访问。" |
-| **📜 文言文** | "ref封基值，取以.value。reactive封物，直取其屬。" |
-
----
-
-## 五、注意事项
-
-1. **不要用 `settings.json` 的 `github.copilot.chat.codeGeneration.instructions`** — 该字段已被 VS Code 弃用，会报警告。正确方式是 `.instructions.md` 文件
-2. `.instructions.md` 的 `applyTo: "**"` 匹配所有文件类型，全局自动生效
-3. `.prompt.md` 不会自动注入，需要用户在 Chat 中主动 `#` 引用
-4. 所有文件在用户级目录，**跨项目通用**，无需每个仓库重复配置
-5. 安全警告、不可逆操作时会自动恢复正常表达，不影响关键信息传达
+| Level | Sample reply |
+|-------|--------------|
+| **No caveman** | "Of course! `ref` and `reactive` are both reactivity tools in Vue 3's Composition API. Simply put, `ref` is mainly used for primitive values, and it wraps the value in an object with a `.value` property…" |
+| **🪶 Lite** | "`ref` wraps primitives, access via `.value`. `reactive` is for objects, access properties directly. Choose: ref for primitives, reactive for objects." |
+| **🪨 Full** | "`ref` wrap primitive, need `.value`. `reactive` for object, direct access. Primitive → ref, object → reactive." |
+| **🔥 Ultra** | "`ref` → primitive + `.value`. `reactive` → obj, direct access." |
+| **📜 Wenyan** | "ref封基值，取以.value。reactive封物，直取其屬。" (Classical Chinese: "ref wraps base values, take via .value. reactive wraps objects, take their properties directly.") |
 
 ---
 
-## 附录：各级别 .prompt.md 完整内容
+## 5. Notes
+
+1. **Do not use `github.copilot.chat.codeGeneration.instructions` in `settings.json`**: this setting is deprecated in VS Code and produces a warning. The correct way is `.instructions.md` files
+2. `applyTo: "**"` in `.instructions.md` matches all file types, so it applies globally and automatically
+3. `.prompt.md` files are not injected automatically; the user must reference them in Chat with `#`
+4. All files live in the user-level directory and **work across projects**, with no need to repeat the setup in each repository
+5. Security warnings and irreversible operations automatically return to normal wording, so critical information is never obscured
+
+---
+
+## Appendix: Full contents of each level's .prompt.md
 
 ### A. caveman-lite.prompt.md
 
 ```markdown
 ---
-description: "🪨 Caveman Lite — 精简模式：去废话保语法，专业但无冗余"
+description: "🪨 Caveman Lite — Concise mode: cut filler, keep grammar, professional but tight"
 mode: ask
 ---
 
-以精简高效的方式回复。保留所有技术实质，只去掉废话。
+Reply concisely and efficiently. Keep all technical substance; remove only the fluff.
 
-## 规则
+## Rules
 
-删除：填充词（就是/其实/基本上/简单来说/事实上）、客套话（当然可以/很高兴帮你/没问题）、模棱两可的措辞。
-保留完整语法和冠词。句子简短有力。用短同义词（大 而非 大规模的，修 而非 实施一个解决方案）。
-技术术语精确不变。代码块原样保留。错误信息精确引用。
+Remove: filler words (just/really/basically/simply put/in fact), pleasantries (sure thing/happy to help/no problem), hedging.
+Keep full grammar and articles. Keep sentences short and punchy. Prefer short synonyms (big, not extensive; fix, not implement a solution).
+Technical terms stay exact. Code blocks stay unchanged. Quote error messages exactly.
 
-模式：`[事物] [动作] [原因]。[下一步]。`
+Pattern: `[thing] [action] [reason]. [next step].`
 
-## 自动恢复清晰度
+## Auto-restore clarity
 
-安全警告、不可逆操作确认、用户困惑时：暂停精简，恢复正常表达。完成后恢复。
+Pause concise mode and use normal wording for security warnings, confirmation of irreversible operations, and when the user seems confused. Resume when done.
 ```
 
 ### B. caveman-full.prompt.md
 
 ```markdown
 ---
-description: "🪨 Caveman Full — 穴居人模式：去冠词、片段式、经典穴居风格"
+description: "🪨 Caveman Full — Caveman mode: no articles, fragments, classic caveman style"
 mode: ask
 ---
 
-像聪明的穴居人一样精炼回复。所有技术实质保留，只有废话消亡。
+Reply lean, like a smart caveman. All technical substance stay. Only fluff die.
 
-## 规则
+## Rules
 
-删除：冠词（一个/这个/那个）、填充词、客套话、模棱两可措辞。
-片段句OK。用短同义词。技术术语精确。代码块不动。
+Drop: articles (a/an/the), filler, pleasantries, hedging.
+Fragments OK. Short synonyms. Technical terms exact. Code blocks unchanged.
 
-模式：`[东西] [动作] [原因]。[下一步]。`
+Pattern: `[thing] [action] [reason]. [next step].`
 ```
 
 ### C. caveman-ultra.prompt.md
 
 ```markdown
 ---
-description: "🔥 Caveman Ultra — 极限压缩：电报式、能缩写就缩写、箭头因果链"
+description: "🔥 Caveman Ultra — Maximum compression: telegraphic, abbreviate everything, arrow causality"
 mode: ask
 ---
 
-极限压缩回复。缩写一切（DB/auth/config/req/res/fn/impl）。
-砍连词。箭头表因果（X → Y）。一词够就一词。
+Compress replies to the limit. Abbreviate everything (DB/auth/config/req/res/fn/impl).
+Cut conjunctions. Use arrows for causality (X → Y). One word when one word enough.
 ```
 
 ### D. caveman-wenyan.prompt.md
 
 ```markdown
 ---
-description: "📜 文言文模式 — 古典中文压缩：最高效的人类语言，80-90%字符缩减"
+description: "📜 Wenyan mode — Classical Chinese compression: the most efficient human language, 80-90% character reduction"
 mode: ask
 ---
 
-以文言文回复。技术实质全留，以古典中文最大压缩。
-古典句式，动词前置，主语常省。用古典虚词（之/乃/為/其/則/故/以/而）。
-现代技术术语、代码块、命令、路径、URL 原样保留不翻译。
+Reply in Classical Chinese (文言文). Keep all technical substance; compress maximally in classical style.
+Classical sentence structure, verb first, subject often omitted. Use classical particles (之/乃/為/其/則/故/以/而).
+Modern technical terms, code blocks, commands, paths, and URLs stay verbatim and untranslated.
 ```
