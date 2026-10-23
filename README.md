@@ -1,83 +1,235 @@
 🇬🇧 **English** | [🇩🇪 Deutsch](README.de.md)
 
-# lesstokens_for_vscode
-Based on caveman. Global prompt files configured for VS Code.
+# cABeman
+Based on caveman. Token-saving prompt files for **Claude Code** and **GitHub Copilot Chat** in VS Code.
 
-> English translation of [birght/lesstokens_for_vscode](https://github.com/birght/lesstokens_for_vscode).
+> English translation of [birght/lesstokens_for_vscode](https://github.com/birght/lesstokens_for_vscode), extended with a Claude Code variant.
 
+# Token-Saving Prompts for Claude Code and Copilot Chat
 
+> Based on the ideas of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman).  
+> The idea for this package comes from [birght/lesstokens_for_vscode](https://github.com/birght/lesstokens_for_vscode) (the Copilot Chat prompt files, translated here) and [kuba-guzik/caveman-micro](https://github.com/kuba-guzik/caveman-micro) (the Micro ruleset used as the default). See [Credits](#credits).  
+> Core idea: use prompts to constrain the LLM's output style, removing filler and redundant phrasing while keeping all technical substance, saving ~65% of output tokens (figure from the original guide, not measured here).
 
-# Token-Saving Prompts for Copilot Chat
+The package comes in two variants. Both have the same idea: a small **always-on** rule set (**Micro**) plus **on-demand levels** you switch to when you want it terser:
 
-> Based on the ideas of [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman), adapted for VS Code GitHub Copilot Chat.  
-> Core idea: use system-level prompts to constrain the LLM's output style, removing filler and redundant phrasing while keeping all technical substance, saving ~65% of output tokens.
+| Level | Style |
+|-------|-------|
+| 🤏 **Micro** (default, always on) | Six-line ruleset: no articles/filler/pleasantries, fragments fine, technical terms exact |
+| 🪶 **Lite** | Cut fluff, keep grammar, professional and tight |
+| 🪨 **Full** | No articles, fragment-style phrasing, classic caveman style |
+| 🔥 **Ultra** | Telegraphic maximum compression, abbreviations + arrow causality chains |
+
+`less_tokens.zip` contains both variants:
+
+```
+less_tokens.zip
+├── claude-code/                    ← Claude Code
+│   ├── rules/caveman.md            ← 🔄 always on (Micro)
+│   └── skills/
+│       ├── caveman-lite/SKILL.md   ← 📋 on demand: /caveman-lite
+│       ├── caveman-full/SKILL.md
+│       └── caveman-ultra/SKILL.md
+└── copilot/                        ← GitHub Copilot Chat
+    ├── prompts/
+    │   ├── caveman-micro.instructions.md   ← 🔄 always on (Micro)
+    │   ├── caveman-lite.prompt.md          ← 📋 on demand: /caveman-lite
+    │   ├── caveman-full.prompt.md
+    │   └── caveman-ultra.prompt.md
+    └── .vscode/settings.json               ← optional
+```
+
+For Claude Code, the same skills and rule also sit as plain files in this repository (`skills/` and `rules/`), so skill managers such as Skill-Dock can import them directly (see Option B).
 
 ---
 
-## 1. File List
+# Part 1: Claude Code
+
+## 1.1 Where the files go
+
+Claude Code reads user-level files from the `.claude` folder in your home directory. The same path logic applies on every OS (`~` is your home/user profile folder):
+
+| File | Target |
+|------|--------|
+| `claude-code/rules/caveman.md` | `~/.claude/rules/caveman.md` (Windows: `%USERPROFILE%\.claude\rules\caveman.md`) |
+| `claude-code/skills/caveman-<level>/` | `~/.claude/skills/caveman-<level>/SKILL.md` |
+
+Both locations are documented by Claude Code:
+- **Rules:** all `.md` files in `~/.claude/rules/` apply to every project. Rules without a `paths` front matter are loaded at launch.
+- **Skills:** a personal skill `~/.claude/skills/<name>/SKILL.md` becomes the slash command `/<name>`. With `disable-model-invocation: true` (set in these files) it only runs when you type it; Claude does not load it on its own.
+
+## 1.2 Setup
+
+Two options. Option A installs everything (rule + skills). Option B installs only the skills, with a VS Code extension; the always-on rule still has to be copied by hand.
+
+### Option A: Manual copy from the ZIP (everything)
+
+Unzip `less_tokens.zip` somewhere first, then copy the files from its `claude-code` folder. If the target folders already exist, the commands add to them; same-named files are overwritten.
+
+**Windows (PowerShell)**, run inside the unzipped folder:
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\.claude\rules","$HOME\.claude\skills" | Out-Null
+Copy-Item .\claude-code\rules\caveman.md "$HOME\.claude\rules\" -Force
+Copy-Item .\claude-code\skills\* "$HOME\.claude\skills\" -Recurse -Force
+```
+
+**macOS / Linux (shell)**, run inside the unzipped folder:
+
+```bash
+mkdir -p ~/.claude/rules ~/.claude/skills
+cp claude-code/rules/caveman.md ~/.claude/rules/
+cp -r claude-code/skills/* ~/.claude/skills/
+```
+
+Or do it by hand in your file manager. Then **start a new Claude Code session**: rules are read at launch.
+
+### Option B: Import via URL with a skill manager (skills only)
+
+The skills are also stored as plain files in this repository (`skills/caveman-<level>/SKILL.md`, one folder per skill), so any tool that imports skills from a GitHub URL can read them. No particular tool is required.
+
+1. Use a skill manager or extension of your choice that imports skills from GitHub repositories into the skill folder of your tool (for Claude Code: `~/.claude/skills/` or a project's `.claude/skills/`).
+2. Add this repository as a source: `https://github.com/arboeh/cABeman`. If the tool wants a link to a single skill, use the folder, e.g. `https://github.com/arboeh/cABeman/tree/main/skills/caveman-full`.
+3. Import the `caveman-*` skills.
+4. Copy the always-on rule by hand: [`rules/caveman.md`](rules/caveman.md) to `~/.claude/rules/caveman.md` (Windows: `%USERPROFILE%\.claude\rules\caveman.md`). Skill managers install skills only.
+
+One example is the VS Code extension [Skill-Dock](https://github.com/yen0304/Skill-Dock): per its README, it can add a GitHub repository as a source (**Skill Dock: Add Marketplace Source** or the `skilldock.marketplaceSources` setting) and import skills for Claude Code. This flow has not been tested for this guide.
+
+> The folder-link format and whether a tool keeps the `disable-model-invocation` setting of these skills depend on the tool. After importing, check the `SKILL.md` files; if the setting is missing, Claude may also load a level on its own. Option A avoids that question.
+
+### Always-on rule (Micro)
+
+`~/.claude/rules/caveman.md`:
+
+```markdown
+# Token efficiency
+Respond like smart caveman. Cut all filler, keep technical substance.
+- Drop articles (a, an, the), filler (just, really, basically, actually).
+- Drop pleasantries (sure, certainly, happy to).
+- No hedging. Fragments fine. Short synonyms.
+- Technical terms stay exact. Code blocks unchanged.
+- Pattern: [thing] [action] [reason]. [next step].
+- Security warnings and irreversible actions: write normally, full sentences.
+```
+
+If you prefer a single file, paste this text into `~/.claude/CLAUDE.md`, or into a project's `CLAUDE.md` for one project only.
+
+## 1.3 Usage
+
+- **Default:** nothing to do. The Micro rule applies in every session.
+- **Switch level:** type the skill as a slash command, then your question:
+
+```
+/caveman-full Explain how Vue's nextTick works
+/caveman-ultra What performance problems does this code have?
+```
+
+| Scenario | Action | Effect |
+|----------|--------|--------|
+| **Everyday (default)** | Nothing to do | `rules/caveman.md` applies Micro |
+| **Lite** | `/caveman-lite` | Grammar kept, fluff cut |
+| **Full** | `/caveman-full` | Caveman mode |
+| **Ultra** | `/caveman-ultra` | Telegraphic maximum compression |
+| **Stop** | Say "normal mode" or "stop concise" | Back to standard replies |
+
+How long a level stays active within a session is not specified by the docs; it is up to the model. Say the level or "normal mode" again if it drifts.
+
+## 1.4 Changing the default or its scope
+
+- Use another level as the always-on rule by replacing the body of `~/.claude/rules/caveman.md`. Rename the file if the name no longer fits.
+- Limit a rule to some files with a `paths` front matter (Claude Code loads it when it works on matching files):
+
+```markdown
+---
+paths:
+  - "src/**"
+---
+```
+
+---
+
+# Part 2: GitHub Copilot Chat
+
+## 2.1 File list
 
 All files live in the **VS Code user-level directory**. They work across projects and do not pollute any repository.
 
 ```
-%APPDATA%\Code\User\prompts\
-├── caveman-lite.instructions.md   ← 🔄 Auto-injected (applies to every chat)
+<VS Code user data>/Code/User/prompts/
+├── caveman-micro.instructions.md  ← 🔄 Auto-injected (applies to every chat)
 ├── caveman-lite.prompt.md         ← 📋 On demand: 🪶 Lite
 ├── caveman-full.prompt.md         ← 📋 On demand: 🪨 Full
-├── caveman-ultra.prompt.md        ← 📋 On demand: 🔥 Ultra
-├── caveman-micro.prompt.md        ← 📋 On demand: 🤏 Micro
-└── caveman-wenyan.prompt.md       ← 📋 On demand: 📜 Wenyan (Classical Chinese)
+└── caveman-ultra.prompt.md        ← 📋 On demand: 🔥 Ultra
 ```
 
-> Windows path: `C:\Users\{username}\AppData\Roaming\Code\User\prompts\`
+> The `prompts` folder lives in VS Code's user data directory (`Code/User`):
+>
+> | OS | Path |
+> |----|------|
+> | Windows | `%APPDATA%\Code\User\prompts\` (i.e. `C:\Users\{username}\AppData\Roaming\Code\User\prompts\`) |
+> | macOS | `$HOME/Library/Application Support/Code/User/prompts/` |
+> | Linux | `$HOME/.config/Code/User/prompts/` |
+>
+> The VS Code docs confirm the `Code/User` directory for each OS (it is where the user `settings.json` lives). That the `prompts` subfolder sits inside it is taken from the original guide; the docs only say user-level prompt files are stored in the profile's user data. Other VS Code editions (e.g. Insiders, which uses `Code - Insiders`) can use a different folder.
+>
+> User-level prompt files belong to your **VS Code profile**. If you work with several profiles, each profile has its own set, so the files must be added to the profile you want to use.
 
 | File | Type | Purpose |
 |------|------|---------|
-| `caveman-lite.instructions.md` | Auto-injected | `applyTo: "**"` matches all files, so it **takes effect in every Copilot chat automatically** |
+| `caveman-micro.instructions.md` | Auto-injected | `applyTo: "**"` matches all files, so it **takes effect in every Copilot chat automatically** |
 | `caveman-lite.prompt.md` | On demand | 🪶 Cut fluff, keep grammar, professional and tight |
 | `caveman-full.prompt.md` | On demand | 🪨 No articles, fragment-style phrasing, classic caveman style |
 | `caveman-ultra.prompt.md` | On demand | 🔥 Telegraphic maximum compression, abbreviations + arrow causality chains |
-| `caveman-micro.prompt.md` | On demand | 🤏 Minimal six-line ruleset, the whole caveman idea in a compact snippet |
-| `caveman-wenyan.prompt.md` | On demand | 📜 Classical Chinese compression, 80-90% character reduction |
 
 **Difference between the two file types**:
 - `.instructions.md`: injected automatically; `applyTo` matches file types, no manual trigger needed
-- `.prompt.md`: chosen on demand; only takes effect when you explicitly reference it in the Chat input
+- `.prompt.md`: chosen on demand; only takes effect when you explicitly run it in the Chat input
 
-**Why only Lite is auto-injected**:
-- A file with `applyTo: "**"` applies to every chat and every file type, so its level has to be low-risk. Lite keeps normal grammar and stays readable in technical discussions.
-- Stronger levels (Full, Ultra, Wenyan) can make explanations ambiguous or confusing, and Wenyan would answer in Classical Chinese all the time.
-- Several `.instructions.md` files with `applyTo: "**"` would all be injected at once. Which one wins in a conflict is not guaranteed, so switching levels per chat with `#` would stop working reliably.
+**Why only one level is auto-injected**:
+- A file with `applyTo: "**"` applies to every chat and every file type, so its level has to be low-risk. Micro is the mildest set that still saves tokens.
+- Stronger levels (Full, Ultra) can make explanations ambiguous or confusing.
+- Several `.instructions.md` files with `applyTo: "**"` would all be injected at once. Which one wins in a conflict is not guaranteed, so switching levels per chat with a slash command would stop working reliably.
 
 **Changing the default level**:
-- Replace the body of `caveman-lite.instructions.md` with another level, e.g. the `caveman-micro` rules. If you do, rename the file (e.g. `caveman-default.instructions.md`) so the name matches the content.
+- Replace the body of `caveman-micro.instructions.md` with another level. If you do, rename the file so the name matches the content.
 - To apply a stricter level only to some files, narrow the scope, e.g. `applyTo: "**/*.md"` or `applyTo: "src/**"`.
-- To apply it to a single project only, put the rules in `.github/copilot-instructions.md` instead (see the tip in section 3).
+- To apply it to a single project only, put the rules in `.github/copilot-instructions.md` instead.
 
----
-
-## 2. Setup
+## 2.2 Setup
 
 ### Step 1: Create the directory
 
-```powershell
-mkdir "$env:APPDATA\Code\User\prompts"
-```
+Create the `prompts` folder from the table above, if it does not exist yet. If it already exists, skip this step; existing files in it stay untouched. Any of these works:
 
-### Step 2: Create the auto-injected file (the core; effective as soon as it exists)
+- **File manager:** create the folder by hand (Explorer, Finder, or your Linux file manager).
+- **VS Code:** run **Chat: New Prompt File** from the Command Palette and choose the user (profile) location. VS Code creates the file in the right place for the active profile, so you can see where it lands.
+- **Windows (PowerShell):** `New-Item -ItemType Directory -Force "$env:APPDATA\Code\User\prompts"`
+- **macOS / Linux (shell):** `mkdir -p` with the path from the table, e.g. `mkdir -p "$HOME/.config/Code/User/prompts"` on Linux
 
-Create `caveman-lite.instructions.md`:
+The `-Force` and `-p` flags make these commands succeed without an error when the folder already exists.
+
+### Step 2: Copy the auto-injected file (the core; effective as soon as it exists)
+
+This step is manual: unzip `less_tokens.zip` and copy `copilot/prompts/caveman-micro.instructions.md` into the `prompts` folder, or create it yourself with this content:
 
 ```markdown
 ---
 applyTo: "**"
 ---
 
-Reply concisely and efficiently. Drop filler words (just/really/basically/simply put), pleasantries (sure thing/happy to help), and hedging. Keep sentences short and punchy; prefer short synonyms. Keep technical terms exact and code blocks unchanged. Pattern: [thing] [action] [reason]. [next step]. Return to normal wording for security warnings and irreversible operations.
+# Token efficiency
+Respond like smart caveman. Cut all filler, keep technical substance.
+- Drop articles (a, an, the), filler (just, really, basically, actually).
+- Drop pleasantries (sure, certainly, happy to).
+- No hedging. Fragments fine. Short synonyms.
+- Technical terms stay exact. Code blocks unchanged.
+- Pattern: [thing] [action] [reason]. [next step].
+- Security warnings and irreversible actions: write normally, full sentences.
 ```
 
-### Step 3 (optional): Create the on-demand level files
+### Step 3 (optional): Copy the on-demand level files
 
-Put the 5 `.prompt.md` files in the same directory. Their contents are in the appendix of this document.
+Copy the 4 `.prompt.md` files from `copilot/prompts/` into the same folder. Their contents are in the appendix.
 
 ### Step 4 (optional): settings.json
 
@@ -92,58 +244,47 @@ Instructions and prompt files from the user-level prompts directory work without
 
 > The original guide also set `chat.promptFiles` and `chat.useAgentSkills`. According to the current VS Code docs, `chat.promptFiles` is not a documented setting, and `chat.useAgentSkills` (default: `true`) only switches on **Agent Skills** (`SKILL.md` folders). That is a separate feature and unrelated to `.prompt.md` files, so both settings are no longer needed here.
 
----
-
-## 3. Usage
+## 2.3 Usage
 
 ### Default behavior (automatic)
 
-`caveman-lite.instructions.md` is injected globally via `applyTo: "**"`, so it **takes effect as soon as you open any Copilot Chat conversation**. No action needed.
+`caveman-micro.instructions.md` is injected globally via `applyTo: "**"`, so it **takes effect as soon as you open any Copilot Chat conversation**. No action needed.
 
-### Referencing prompt files with `#` (upgrade on demand)
+### Running prompt files with `/` (upgrade on demand)
 
-In the Copilot Chat input, the `#` command lets you reference `.prompt.md` files:
+In the Copilot Chat input, type `/` followed by the prompt name to run a `.prompt.md` file as a slash command:
 
 ```
-# Steps:
-1. Type # in the Chat input
-2. Choose "Prompt..." from the popup list (or type the file name to fuzzy-match)
-3. Pick the .prompt.md file for the level you want
-4. Type your question and send
+Steps:
+1. Type / in the Chat input
+2. Pick the prompt from the list (or keep typing the name, e.g. /caveman-full)
+3. Add your question after the command and send
 ```
+
+Alternatives: run **Chat: Run Prompt** from the Command Palette, or open the `.prompt.md` file and press the play button in the editor title area.
+
+> `#` is **not** the way to run a prompt file. In VS Code, `#` is for adding context such as `#file:` or `#tool:`.
 
 **Example inputs**:
 
 ```
-#caveman-full Explain how Vue's nextTick works
+/caveman-full Explain how Vue's nextTick works
+/caveman-ultra What performance problems does this code have?
 ```
 
-```
-#caveman-ultra What performance problems does this code have?
-```
-
-```
-#caveman-wenyan pinia vs vuex
-```
-
-> A `.prompt.md` referenced via `#` only applies to the **current conversation** and does not affect others. After you close the conversation, the default lite level is back in effect.
-
-### Quick reference
+> A `.prompt.md` run via `/` is meant for the chat you run it in. In a new chat, the default Micro level applies again unless you run a prompt there too. The docs do not say whether user-level prompt files always show up in the `/` list; if one is missing, use **Chat: Run Prompt**.
 
 | Scenario | Action | Effect |
 |----------|--------|--------|
-| **Everyday (default)** | Nothing to do | `.instructions.md` auto-injects the lite level |
-| **Upgrade to Full** | Type `#` → pick `caveman-full` | Current conversation switches to caveman mode |
-| **Upgrade to Ultra** | Type `#` → pick `caveman-ultra` | Telegraphic maximum compression |
-| **Minimal ruleset** | Type `#` → pick `caveman-micro` | Compact six-line caveman rules |
-| **Switch to Wenyan** | Type `#` → pick `caveman-wenyan` | Classical Chinese output |
+| **Everyday (default)** | Nothing to do | `.instructions.md` auto-injects Micro |
+| **Lite** | Type `/caveman-lite` | Grammar kept, fluff cut |
+| **Full** | Type `/caveman-full` | Current chat switches to caveman mode |
+| **Ultra** | Type `/caveman-ultra` | Telegraphic maximum compression |
 | **Stop** | Say "normal mode" or "stop concise" in the chat | Back to standard replies |
-
-> **Tip:** The `caveman-micro` snippet also works as a project-level, always-on file. Paste its body (without the front matter) into `.github/copilot-instructions.md` for Copilot, or into `CLAUDE.md` for Claude Code.
 
 ---
 
-## 4. Comparison
+# Comparison
 
 Same question: "Difference between Vue ref and reactive"
 
@@ -153,24 +294,177 @@ Same question: "Difference between Vue ref and reactive"
 | **🪶 Lite** | "`ref` wraps primitives, access via `.value`. `reactive` is for objects, access properties directly. Choose: ref for primitives, reactive for objects." |
 | **🪨 Full** | "`ref` wrap primitive, need `.value`. `reactive` for object, direct access. Primitive → ref, object → reactive." |
 | **🔥 Ultra** | "`ref` → primitive + `.value`. `reactive` → obj, direct access." |
-| **📜 Wenyan** | "ref封基值，取以.value。reactive封物，直取其屬。" (Classical Chinese: "ref wraps base values, take via .value. reactive wraps objects, take their properties directly.") |
+
+These sample replies come from the original guide; they were not regenerated.
 
 ---
 
-## 5. Notes
+# Notes
 
-1. `applyTo: "**"` in `.instructions.md` matches all file types, so it applies globally and automatically
-2. `.prompt.md` files are not injected automatically; the user must reference them in Chat with `#`
-3. All files live in the user-level directory and **work across projects**, with no need to repeat the setup in each repository
-4. Security warnings and irreversible operations automatically return to normal wording, so critical information is never obscured
+1. Always-on files (`rules/caveman.md`, `*.instructions.md`) apply automatically. Level files (skills, `.prompt.md`) only run when you type their slash command.
+2. All files live in user-level folders and **work across projects**, with no need to repeat the setup in each repository.
+3. Security warnings and irreversible operations should return to normal wording, so critical information is never obscured.
+4. The rules are written for English replies. If you ask in another language, the style still tends to carry over, but the filler-word lists will match less precisely.
 
 ---
 
-## Appendix: Full contents of each level's .prompt.md
+# Credits
 
-### A. caveman-lite.prompt.md
+- [birght/lesstokens_for_vscode](https://github.com/birght/lesstokens_for_vscode): the original idea and the Copilot Chat prompt files (Lite, Full, Ultra, Wenyan, in Chinese). This repository is an English and German translation, extended with a Claude Code variant. The original repository has no license file.
+- [kuba-guzik/caveman-micro](https://github.com/kuba-guzik/caveman-micro) (MIT): the Micro ruleset used here as the always-on default.
+- [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman): the caveman style these prompts are based on.
 
-```markdown
+---
+
+# Appendix: Full file contents
+
+All files are in English and identical in the ZIP and here.
+
+## Claude Code
+
+### claude-code/rules/caveman.md
+
+````markdown
+# Token efficiency
+Respond like smart caveman. Cut all filler, keep technical substance.
+- Drop articles (a, an, the), filler (just, really, basically, actually).
+- Drop pleasantries (sure, certainly, happy to).
+- No hedging. Fragments fine. Short synonyms.
+- Technical terms stay exact. Code blocks unchanged.
+- Pattern: [thing] [action] [reason]. [next step].
+- Security warnings and irreversible actions: write normally, full sentences.
+````
+
+### claude-code/skills/caveman-lite/SKILL.md
+
+````markdown
+---
+name: caveman-lite
+description: "🪨 Caveman Lite — Concise mode: cut filler, keep grammar, professional but tight"
+disable-model-invocation: true
+---
+
+Reply concisely and efficiently. Keep all technical substance; remove only the fluff.
+
+## Rules
+
+Remove: filler words (just/really/basically/simply put/in fact), pleasantries (sure thing/happy to help/no problem), hedging.
+Keep full grammar and articles. Keep sentences short and punchy. Prefer short synonyms (big, not extensive; fix, not implement a solution).
+Technical terms stay exact. Code blocks stay unchanged. Quote error messages exactly.
+
+Pattern: `[thing] [action] [reason]. [next step].`
+
+Not: "Sure, I'd be happy to help you with that. The issue you're experiencing is most likely caused by..."
+Yes: "Auth middleware has a bug. Token expiry check uses `<` instead of `<=`. Fix:"
+
+## Auto-restore clarity
+
+Pause concise mode and use normal wording for: security warnings, confirmation of irreversible operations, multi-step sequences where fragmented phrasing could be misread, and when the user seems confused. Resume concise mode once the clear part is done.
+
+## Boundaries
+
+Code/commits/PRs: write normally. Revert when the user says "stop concise" or "normal mode". The level persists until switched or the session ends.
+````
+
+### claude-code/skills/caveman-full/SKILL.md
+
+````markdown
+---
+name: caveman-full
+description: "🪨 Caveman Full — Caveman mode: no articles, fragments, classic caveman style"
+disable-model-invocation: true
+---
+
+Reply lean, like a smart caveman. All technical substance stay. Only fluff die.
+
+## Rules
+
+Drop: articles (a/an/the), filler (just/really/basically/simply put), pleasantries (sure/no problem/happy to help), hedging.
+Fragments OK. Short synonyms (big not extensive, fix not "implement a solution"). Technical terms exact. Code blocks unchanged. Errors quoted exact.
+
+Pattern: `[thing] [action] [reason]. [next step].`
+
+Not: "Sure, I'd be happy to help you with that. The issue you're experiencing is most likely caused by..."
+Yes: "Bug in auth middleware. Token expiry check use `<` not `<=`. Fix:"
+
+## Intensity examples
+
+Q: "Why does my React component re-render?"
+A: "New object ref each render. Inline object prop = new ref = re-render. Wrap in `useMemo`."
+
+Q: "Explain database connection pooling."
+A: "Pool reuse open DB connections. No new connection per request. Skip handshake overhead."
+
+## Auto-restore
+
+Security warnings, irreversible-operation confirmations, user confusion: drop caveman, speak normally. Resume after clear part done.
+
+## Boundaries
+
+Code/commits/PRs: write normally. "Stop caveman" or "normal mode": revert. Level persists until switched or session ends.
+````
+
+### claude-code/skills/caveman-ultra/SKILL.md
+
+````markdown
+---
+name: caveman-ultra
+description: "🔥 Caveman Ultra — Maximum compression: telegraphic, abbreviate everything, arrow causality"
+disable-model-invocation: true
+---
+
+Compress replies to the limit. Keep all technical substance. Cut words ruthlessly.
+
+## Rules
+
+Abbreviate everything (DB/auth/config/req/res/fn/impl/env/dep/pkg/init/param/cb).
+Cut conjunctions. Use arrows for causality (X → Y). One word when one word enough.
+Technical terms exact. Code blocks unchanged. Errors quoted exact.
+
+Pattern: `[abbrev] → [result]. [action].`
+
+Not: "The component re-renders because a new object reference is created on every render"
+Yes: "Inline obj prop → new ref → re-render. `useMemo`."
+
+## Examples
+
+Q: "Explain database connection pooling"
+A: "Pool = reuse DB conn. Skip handshake → fast under load."
+
+Q: "Fix auth middleware token expiry"
+A: "L42: token check `<` → `<=`. Off by 1s at expiry."
+
+## Auto-restore
+
+Security warnings/irreversible operations: speak normally. Resume ultra afterwards.
+
+## Boundaries
+
+Code written normally. "Stop": revert.
+````
+
+## GitHub Copilot Chat
+
+### copilot/prompts/caveman-micro.instructions.md
+
+````markdown
+---
+applyTo: "**"
+---
+
+# Token efficiency
+Respond like smart caveman. Cut all filler, keep technical substance.
+- Drop articles (a, an, the), filler (just, really, basically, actually).
+- Drop pleasantries (sure, certainly, happy to).
+- No hedging. Fragments fine. Short synonyms.
+- Technical terms stay exact. Code blocks unchanged.
+- Pattern: [thing] [action] [reason]. [next step].
+- Security warnings and irreversible actions: write normally, full sentences.
+````
+
+### copilot/prompts/caveman-lite.prompt.md
+
+````markdown
 ---
 description: "🪨 Caveman Lite — Concise mode: cut filler, keep grammar, professional but tight"
 agent: ask
@@ -196,11 +490,11 @@ Pause concise mode and use normal wording for: security warnings, confirmation o
 ## Boundaries
 
 Code/commits/PRs: write normally. Revert when the user says "stop concise" or "normal mode". The level persists until switched or the session ends.
-```
+````
 
-### B. caveman-full.prompt.md
+### copilot/prompts/caveman-full.prompt.md
 
-```markdown
+````markdown
 ---
 description: "🪨 Caveman Full — Caveman mode: no articles, fragments, classic caveman style"
 agent: ask
@@ -233,11 +527,11 @@ Security warnings, irreversible-operation confirmations, user confusion: drop ca
 ## Boundaries
 
 Code/commits/PRs: write normally. "Stop caveman" or "normal mode": revert. Level persists until switched or session ends.
-```
+````
 
-### C. caveman-ultra.prompt.md
+### copilot/prompts/caveman-ultra.prompt.md
 
-```markdown
+````markdown
 ---
 description: "🔥 Caveman Ultra — Maximum compression: telegraphic, abbreviate everything, arrow causality"
 agent: ask
@@ -271,69 +565,4 @@ Security warnings/irreversible operations: speak normally. Resume ultra afterwar
 ## Boundaries
 
 Code written normally. "Stop": revert.
-```
-
-### D. caveman-micro.prompt.md
-
-```markdown
----
-description: "🤏 Caveman Micro — Minimal ruleset: the whole caveman idea in six lines"
-agent: ask
----
-
-# Token efficiency
-Respond like smart caveman. Cut all filler, keep technical substance.
-- Drop articles (a, an, the), filler (just, really, basically, actually).
-- Drop pleasantries (sure, certainly, happy to).
-- No hedging. Fragments fine. Short synonyms.
-- Technical terms stay exact. Code blocks unchanged.
-- Pattern: [thing] [action] [reason]. [next step].
-```
-
-### E. caveman-wenyan.prompt.md
-
-```markdown
----
-description: "📜 Wenyan mode — Classical Chinese compression: the most efficient human language, 80-90% character reduction"
-agent: ask
----
-
-Reply in Classical Chinese (文言文). Keep all technical substance; compress maximally in classical style.
-
-## Rules
-
-Classical sentence structure, verb first, subject often omitted. Use classical particles (之/乃/為/其/則/故/以/而).
-Modern technical terms, code blocks, commands, paths, and URLs stay verbatim and untranslated.
-Use Classical Chinese for prose only; technical content stays exact.
-
-## Intensity levels
-
-### wenyan-lite (semi-classical)
-Cut fluff but keep grammatical structure, in a classical register.
-Example — "Why does the component re-render?"
-Answer: "組件頻重繪，以每繪新生對象參照故。以 `useMemo` 包之。"
-(English gloss, not part of the output: "The component repaints often, because every paint creates a new object reference. Wrap it with `useMemo`.")
-
-### wenyan-full (maximum classical terseness, default)
-Fully Classical Chinese. 80-90% character reduction.
-Example — "Why does the component re-render?"
-Answer: "物出新參照，致重繪。`useMemo` 包之。"
-(English gloss, not part of the output: "The object yields a new reference, causing a repaint. Wrap it with `useMemo`.")
-
-### wenyan-ultra (extreme)
-Extreme abbreviation while keeping the classical Chinese feel.
-Example — "Why does the component re-render?"
-Answer: "新參照→重繪。`useMemo`。"
-(English gloss, not part of the output: "New reference → repaint. `useMemo`.")
-
-Switch levels with `/caveman wenyan-lite`, `/caveman wenyan`, `/caveman wenyan-ultra`.
-Default is wenyan-full.
-
-## Auto-restore
-
-Security warnings, irreversible operations: confirm in plain modern language. Resume Classical Chinese afterwards.
-
-## Boundaries
-
-Code/commits written normally. "Stop wenyan" or "normal mode": revert.
-```
+````
