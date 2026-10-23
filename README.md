@@ -1,3 +1,5 @@
+🇬🇧 **English** | [🇩🇪 Deutsch](README.de.md)
+
 # lesstokens_for_vscode
 Based on caveman. Global prompt files configured for VS Code.
 
@@ -22,6 +24,7 @@ All files live in the **VS Code user-level directory**. They work across project
 ├── caveman-lite.prompt.md         ← 📋 On demand: 🪶 Lite
 ├── caveman-full.prompt.md         ← 📋 On demand: 🪨 Full
 ├── caveman-ultra.prompt.md        ← 📋 On demand: 🔥 Ultra
+├── caveman-micro.prompt.md        ← 📋 On demand: 🤏 Micro
 └── caveman-wenyan.prompt.md       ← 📋 On demand: 📜 Wenyan (Classical Chinese)
 ```
 
@@ -33,11 +36,22 @@ All files live in the **VS Code user-level directory**. They work across project
 | `caveman-lite.prompt.md` | On demand | 🪶 Cut fluff, keep grammar, professional and tight |
 | `caveman-full.prompt.md` | On demand | 🪨 No articles, fragment-style phrasing, classic caveman style |
 | `caveman-ultra.prompt.md` | On demand | 🔥 Telegraphic maximum compression, abbreviations + arrow causality chains |
+| `caveman-micro.prompt.md` | On demand | 🤏 Minimal six-line ruleset, the whole caveman idea in a compact snippet |
 | `caveman-wenyan.prompt.md` | On demand | 📜 Classical Chinese compression, 80-90% character reduction |
 
 **Difference between the two file types**:
 - `.instructions.md`: injected automatically; `applyTo` matches file types, no manual trigger needed
 - `.prompt.md`: chosen on demand; only takes effect when you explicitly reference it in the Chat input
+
+**Why only Lite is auto-injected**:
+- A file with `applyTo: "**"` applies to every chat and every file type, so its level has to be low-risk. Lite keeps normal grammar and stays readable in technical discussions.
+- Stronger levels (Full, Ultra, Wenyan) can make explanations ambiguous or confusing, and Wenyan would answer in Classical Chinese all the time.
+- Several `.instructions.md` files with `applyTo: "**"` would all be injected at once. Which one wins in a conflict is not guaranteed, so switching levels per chat with `#` would stop working reliably.
+
+**Changing the default level**:
+- Replace the body of `caveman-lite.instructions.md` with another level, e.g. the `caveman-micro` rules. If you do, rename the file (e.g. `caveman-default.instructions.md`) so the name matches the content.
+- To apply a stricter level only to some files, narrow the scope, e.g. `applyTo: "**/*.md"` or `applyTo: "src/**"`.
+- To apply it to a single project only, put the rules in `.github/copilot-instructions.md` instead (see the tip in section 3).
 
 ---
 
@@ -63,24 +77,20 @@ Reply concisely and efficiently. Drop filler words (just/really/basically/simply
 
 ### Step 3 (optional): Create the on-demand level files
 
-Put the 4 `.prompt.md` files in the same directory. Their contents are in the appendix of this document.
+Put the 5 `.prompt.md` files in the same directory. Their contents are in the appendix of this document.
 
-### Step 4: Workspace settings.json
+### Step 4 (optional): settings.json
 
-Add the following to the project's `.vscode/settings.json`:
+Instructions and prompt files from the user-level prompts directory work without any extra setting in current VS Code versions. The only setting worth adding is the request limit for Agent mode (the default is 25). Put it in the project's `.vscode/settings.json` or in your user settings:
 
 ```jsonc
 {
-  // Enable .instructions.md / .prompt.md from the user-level prompts directory
-  "chat.promptFiles": true,
-  // Enable Agent Skills (allows picking .prompt.md files on demand)
-  "chat.useAgentSkills": true,
-  // Max requests per session in Agent mode
+  // Max requests per session in Agent mode (default: 25)
   "chat.agent.maxRequests": 50
 }
 ```
 
-> `chat.promptFiles` and `chat.useAgentSkills` can also be set in the user-level settings.json with the same effect.
+> The original guide also set `chat.promptFiles` and `chat.useAgentSkills`. According to the current VS Code docs, `chat.promptFiles` is not a documented setting, and `chat.useAgentSkills` (default: `true`) only switches on **Agent Skills** (`SKILL.md` folders). That is a separate feature and unrelated to `.prompt.md` files, so both settings are no longer needed here.
 
 ---
 
@@ -125,8 +135,11 @@ In the Copilot Chat input, the `#` command lets you reference `.prompt.md` files
 | **Everyday (default)** | Nothing to do | `.instructions.md` auto-injects the lite level |
 | **Upgrade to Full** | Type `#` → pick `caveman-full` | Current conversation switches to caveman mode |
 | **Upgrade to Ultra** | Type `#` → pick `caveman-ultra` | Telegraphic maximum compression |
+| **Minimal ruleset** | Type `#` → pick `caveman-micro` | Compact six-line caveman rules |
 | **Switch to Wenyan** | Type `#` → pick `caveman-wenyan` | Classical Chinese output |
 | **Stop** | Say "normal mode" or "stop concise" in the chat | Back to standard replies |
+
+> **Tip:** The `caveman-micro` snippet also works as a project-level, always-on file. Paste its body (without the front matter) into `.github/copilot-instructions.md` for Copilot, or into `CLAUDE.md` for Claude Code.
 
 ---
 
@@ -146,11 +159,10 @@ Same question: "Difference between Vue ref and reactive"
 
 ## 5. Notes
 
-1. **Do not use `github.copilot.chat.codeGeneration.instructions` in `settings.json`**: this setting is deprecated in VS Code and produces a warning. The correct way is `.instructions.md` files
-2. `applyTo: "**"` in `.instructions.md` matches all file types, so it applies globally and automatically
-3. `.prompt.md` files are not injected automatically; the user must reference them in Chat with `#`
-4. All files live in the user-level directory and **work across projects**, with no need to repeat the setup in each repository
-5. Security warnings and irreversible operations automatically return to normal wording, so critical information is never obscured
+1. `applyTo: "**"` in `.instructions.md` matches all file types, so it applies globally and automatically
+2. `.prompt.md` files are not injected automatically; the user must reference them in Chat with `#`
+3. All files live in the user-level directory and **work across projects**, with no need to repeat the setup in each repository
+4. Security warnings and irreversible operations automatically return to normal wording, so critical information is never obscured
 
 ---
 
@@ -261,7 +273,24 @@ Security warnings/irreversible operations: speak normally. Resume ultra afterwar
 Code written normally. "Stop": revert.
 ```
 
-### D. caveman-wenyan.prompt.md
+### D. caveman-micro.prompt.md
+
+```markdown
+---
+description: "🤏 Caveman Micro — Minimal ruleset: the whole caveman idea in six lines"
+agent: ask
+---
+
+# Token efficiency
+Respond like smart caveman. Cut all filler, keep technical substance.
+- Drop articles (a, an, the), filler (just, really, basically, actually).
+- Drop pleasantries (sure, certainly, happy to).
+- No hedging. Fragments fine. Short synonyms.
+- Technical terms stay exact. Code blocks unchanged.
+- Pattern: [thing] [action] [reason]. [next step].
+```
+
+### E. caveman-wenyan.prompt.md
 
 ```markdown
 ---
