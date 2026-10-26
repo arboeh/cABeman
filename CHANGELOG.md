@@ -9,7 +9,7 @@ First public release.
 ### Added
 - Claude Code: always-on Micro rule (`rules/caveman.md`) and on-demand skills `caveman-lite`, `caveman-full`, `caveman-ultra`.
 - Copilot Chat: auto-injected `caveman-micro.instructions.md` and on-demand prompt files for Lite, Full, Ultra (`copilot/prompts/`).
-- German README, setup guides in `docs/`, MIT `LICENSE`.
+- German README, setup guides in `docs/`, MIT `LICENSE`, `THIRD-PARTY-NOTICES.md` (caveman: Apache-2.0, caveman-micro: MIT).
 - Download package `cABeman-v1.0.0.zip` as release asset.
 
 ### Changed

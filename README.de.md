@@ -81,4 +81,4 @@ Beispiele sind illustrativ, nicht gemessen. Die Angabe "ca. 65 % weniger Ausgabe
 
 ## Lizenz
 
-[MIT](LICENSE) für den Inhalt dieses Repositorys, ausgenommen das oben genannte Material Dritter.
+[MIT](LICENSE) für die eigenen Inhalte dieses Repositorys. Material Dritter und dessen Lizenzen: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

@@ -81,4 +81,4 @@ Samples are illustrative, not measured. The "~65 % fewer output tokens" figure o
 
 ## License
 
-[MIT](LICENSE) for the contents of this repository, excluding the third-party material credited above.
+[MIT](LICENSE) for the original contents of this repository. Third-party material and its licenses: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
