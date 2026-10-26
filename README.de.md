@@ -1,6 +1,6 @@
 [🇬🇧 English](README.md) | 🇩🇪 **Deutsch**
 
-# cABeman
+<img src="images/heading.svg" alt="huABus" height="40"/>
 
 Token-sparende Prompt-Dateien für **Claude Code** und **GitHub Copilot Chat**. Basiert auf [caveman](https://github.com/JuliusBrussee/caveman): Antwortstil einschränken, Füllwörter weg, technische Substanz bleibt.
 
@@ -61,7 +61,7 @@ Micro gilt automatisch. Stufe wechseln per Slash-Befehl:
 
 | Stufe | Antwort |
 |-------|---------|
-| Ohne caveman | "Gerne! `ref` und `reactive` sind beides Reaktivitäts-Werkzeuge der Composition API von Vue 3. Vereinfacht gesagt wird `ref` vor allem für primitive Werte genutzt…" |
+| Ohne caveman | "Gerne! `ref` und `reactive` sind beides Reaktivitäts-Werkzeuge der Composition API von Vue 3. Vereinfacht gesagt wird `ref` vor allem für primitive Werte genutzt..." |
 | 🪶 Lite | "`ref` verpackt Primitive, Zugriff über `.value`. `reactive` für Objekte, direkter Zugriff." |
 | 🪨 Full | "`ref` wrap Primitive, braucht `.value`. `reactive` für Objekt, direkter Zugriff." |
 | 🔥 Ultra | "`ref` → Primitive + `.value`. `reactive` → Obj, direkter Zugriff." |

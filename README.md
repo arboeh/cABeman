@@ -1,6 +1,6 @@
 🇬🇧 **English** | [🇩🇪 Deutsch](README.de.md)
 
-# cABeman
+<img src="images/heading.svg" alt="huABus" height="40"/>
 
 Token-saving prompt files for **Claude Code** and **GitHub Copilot Chat**. Based on [caveman](https://github.com/JuliusBrussee/caveman): constrain the output style, cut filler, keep all technical substance.
 
@@ -61,7 +61,7 @@ Say "normal mode" or "stop concise" to go back to standard replies.
 
 | Level | Reply |
 |-------|-------|
-| No caveman | "Of course! `ref` and `reactive` are both reactivity tools in Vue 3's Composition API. Simply put, `ref` is mainly used for primitive values…" |
+| No caveman | "Of course! `ref` and `reactive` are both reactivity tools in Vue 3's Composition API. Simply put, `ref` is mainly used for primitive values..." |
 | 🪶 Lite | "`ref` wraps primitives, access via `.value`. `reactive` is for objects, access properties directly." |
 | 🪨 Full | "`ref` wrap primitive, need `.value`. `reactive` for object, direct access." |
 | 🔥 Ultra | "`ref` → primitive + `.value`. `reactive` → obj, direct access." |
